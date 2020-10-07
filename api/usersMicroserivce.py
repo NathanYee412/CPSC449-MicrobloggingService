@@ -21,41 +21,72 @@ Stop following a user.
 
 """
 
+class User(db.Model):
 
-"""
-
-1. need to figure out which database we're supposed to use
-2. is the database preloaded with data? 
-
-"""
-
-# db = sqlite3.connect('project2.db')
-# Not sure if Users is supposed to be a class 
-class Users(db.Model):
-
-    # username = db.Column(db.String, primary_key=True)
-    # password = db.Column(db.String)
-    # hashed_password = (db.string)
-
-    def createUser(username, email, password):
-        #implement this
-        return "<p>User has been created</p>"
-
-    def authenticateUser(username, hashed_password):
-        #implement this
-        return False
-
-    def addFollower(usermame, userToFollow):
-        #implement this
-        return "username + ' is now following ' + userToFollow"
-        
-    def removeFollower(username, usernameToRemove):
-        #implement this
-        return "username + ' is removed ' + usernameToRemove"
+    username = db.Column(db.String(80), unique=True)
+    email = db.Column(db.String(120), unique=True)
+    hashed_password = db.Column(db.String(80), unique=True)
+    
+    def __init__(self, username, email, hashed_password):
+        self.username = username
+        self.email = email
+        self.hashed_password = hashed_password
 
 
-@app.route('/', methods=['GET'])
-def home():
-    return "<h1>CPSC 449 PROJECT 2</h1><p>Back-end microservices project for a microblogging service similar to Twitter.</p>"
+
+@app.route('/createUser', methods=["POST"])
+def createUser(username, email, password):
+    db = sqlite3.connect('micro.db')
+    
+    #store user variables 
+    username = request.json['username']
+    email = request.json['email']
+    hashed_password = request.json['hashed_password']
+
+    #create new user object to pass into db
+    newUser = User(username, email, hashed_password)
+
+    #add new user to db 
+    db.session.add(newUser)
+    db.session.commit()
+
+    return jsonify(new_user)
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return "<h1>404</h1><p>The resource could not be found.</p>", 404
+
+
+@app.route('/auth')
+def authenticateUser(username, hashed_password):
+    user = User.query.filter_by(username=username).first()
+
+
+def addFollower(usermame, userToFollow):
+    #implement this
+    return "username + ' is now following ' + userToFollow"
+    
+def removeFollower(username, usernameToRemove):
+    #implement this
+    return "username + ' is removed ' + usernameToRemove"
+
 
 app.run()
+
+
+    """
+    from class user 
+
+    def dataToDict(self):
+        data = {
+            'username' : self.username,
+            'email' : self.email,
+            'hashed_password' : self.hashed_password,
+            '_links' : {
+                'self' : url_for('api.get_user', id=self.id),
+                'followers' : url_for('api.get_followers', id=self.id),
+                'followed' : url_for('api.get_followed', id=self.id),
+            }
+        }
+    """
